@@ -73,7 +73,7 @@ window.Webflow.push(() => {
   });
 
   // Mousemove handler: move the button & tilt the cards
-  const mouseMoveHandler = (e) => {
+  const mouseMoveHandler = (e: MouseEvent) => {
     const mx = e.clientX;
     const my = e.clientY;
 
