@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.Webflow ||= [];
+window.Webflow.push(() => {
   // Configuration
   const MAX_ROT_Y = 40; // max ±Y tilt in degrees
   const MAX_ROT_X = 20; // max ±X tilt in degrees
@@ -35,20 +36,28 @@ document.addEventListener('DOMContentLoaded', () => {
     winW = window.innerWidth;
     winH = window.innerHeight;
     maxDist = Math.hypot(winW, winH);
+    updateCardRectBounds();
   });
 
+  // Helper function to update card bounds
   const cardRectBounds = [];
-  cards.forEach((card) => {
-    const rect = card.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    cardRectBounds.push({
-      cx,
-      cy,
-      width: rect.width,
-      height: rect.height,
+  function updateCardRectBounds() {
+    cardRectBounds.length = 0; // Clear the array
+    cards.forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      cardRectBounds.push({
+        cx,
+        cy,
+        width: rect.width,
+        height: rect.height,
+      });
     });
-  });
+  }
+
+  // Initial calculation
+  updateCardRectBounds();
 
   sectionEl.addEventListener('mouseenter', (e) => {
     cards.forEach((card, i) => {
@@ -74,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
       mover._setY(my);
     }
 
-    // 2) “look-at” rotation for each card
+    // 2) "look-at" rotation for each card
     cards.forEach((card, i) => {
       const { rotY, rotX } = getCardRotation(i, e);
 
