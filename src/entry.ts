@@ -18,7 +18,8 @@ export interface ScriptOptions {
   [key: string]: unknown;
 }
 
-window.PRODUCTION_BASE = 'https://cdn.jsdelivr.net/gh/igniteagency/{{repo}}/dist/prod/';
+window.PRODUCTION_BASE =
+  'https://cdn.jsdelivr.net/gh/igniteagency/webflow-project-prototypes-site/dist/prod/';
 const relativePathBase = window.SCRIPTS_ENV === 'local' ? LOCAL_SERVER : window.PRODUCTION_BASE;
 
 /**
