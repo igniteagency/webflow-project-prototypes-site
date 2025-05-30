@@ -15,25 +15,20 @@ window.Webflow.push(() => {
   const mover = document.querySelector('.tri-button-move');
 
   // centre the mover on its x/y and make it fixed (CSS can override if needed)
-  let moverSetX: ((v: number) => void) | undefined;
-  let moverSetY: ((v: number) => void) | undefined;
   if (mover) {
-    console.debug('mover', mover);
     gsap.set(mover, {
       position: 'fixed',
       xPercent: -50,
       yPercent: -50,
     });
-    moverSetX = gsap.quickSetter(mover, 'x', 'px') as (v: number) => void;
-    moverSetY = gsap.quickSetter(mover, 'y', 'px') as (v: number) => void;
+    mover._setX = gsap.quickSetter(mover, 'x', 'px');
+    mover._setY = gsap.quickSetter(mover, 'y', 'px');
   }
 
   // prepare each card for rotation
-  const rotYSetters = new Map<HTMLElement, (v: number) => void>();
-  const rotXSetters = new Map<HTMLElement, (v: number) => void>();
   cards.forEach((card) => {
-    rotYSetters.set(card, gsap.quickSetter(card, 'rotationY', 'deg') as (v: number) => void);
-    rotXSetters.set(card, gsap.quickSetter(card, 'rotationX', 'deg') as (v: number) => void);
+    card._setRotY = gsap.quickSetter(card, 'rotationY', 'deg');
+    card._setRotX = gsap.quickSetter(card, 'rotationX', 'deg');
   });
 
   // update maxDist if the window resizes
@@ -41,11 +36,32 @@ window.Webflow.push(() => {
     winW = window.innerWidth;
     winH = window.innerHeight;
     maxDist = Math.hypot(winW, winH);
+    updateCardRectBounds();
   });
 
-  sectionEl.addEventListener('mouseenter', (e) => {
+  // Helper function to update card bounds
+  const cardRectBounds = [];
+  function updateCardRectBounds() {
+    cardRectBounds.length = 0; // Clear the array
     cards.forEach((card) => {
-      const { rotY, rotX } = getCardRotation(card, e);
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      cardRectBounds.push({
+        cx,
+        cy,
+        width: rect.width,
+        height: rect.height,
+      });
+    });
+  }
+
+  // Initial calculation
+  updateCardRectBounds();
+
+  sectionEl.addEventListener('mouseenter', (e) => {
+    cards.forEach((card, i) => {
+      const { rotY, rotX } = getCardRotation(i, e);
       gsap.to(card, {
         rotationX: rotX,
         rotationY: rotY,
@@ -62,16 +78,17 @@ window.Webflow.push(() => {
     const my = e.clientY;
 
     // 1) move the fixed .tri-button-move
-    if (moverSetX && moverSetY) {
-      moverSetX(mx);
-      moverSetY(my);
+    if (mover) {
+      mover._setX(mx);
+      mover._setY(my);
     }
 
     // 2) "look-at" rotation for each card
-    cards.forEach((card) => {
-      const { rotY, rotX } = getCardRotation(card, e);
-      rotYSetters.get(card)?.(rotY);
-      rotXSetters.get(card)?.(rotX);
+    cards.forEach((card, i) => {
+      const { rotY, rotX } = getCardRotation(i, e);
+
+      card._setRotY(rotY);
+      card._setRotX(rotX);
     });
   };
 
@@ -86,10 +103,10 @@ window.Webflow.push(() => {
     sectionEl.removeEventListener('mousemove', mouseMoveHandler);
   });
 
-  function getCardRotation(card: HTMLElement, mouseEv: MouseEvent) {
-    const rect = card.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
+  function getCardRotation(cardIndex, mouseEv) {
+    const rect = cardRectBounds[cardIndex];
+    const cx = rect.cx;
+    const cy = rect.cy;
 
     const cardWidth = rect.width;
     const cardHeight = rect.height;
