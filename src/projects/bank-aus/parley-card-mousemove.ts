@@ -9,7 +9,7 @@ window.Webflow.push(() => {
   let maxDist = Math.hypot(winW, winH);
 
   // Grab elements & prepare GSAP quickSetters
-  const sectionEl = document.querySelector('.card-section.is-cards-fan');
+  const sectionEl = document.querySelector('.card-section.is-cards-fan') as HTMLElement;
   const CARDS_SELECTOR = '.card-info-wrapper';
   const cards = document.querySelectorAll(CARDS_SELECTOR);
   const mover = document.querySelector('.tri-button-move');
@@ -60,6 +60,7 @@ window.Webflow.push(() => {
   updateCardRectBounds();
 
   sectionEl.addEventListener('mouseenter', (e) => {
+    updateCardRectBounds();
     cards.forEach((card, i) => {
       const { rotY, rotX } = getCardRotation(i, e);
       gsap.to(card, {
@@ -76,6 +77,8 @@ window.Webflow.push(() => {
   const mouseMoveHandler = (e: MouseEvent) => {
     const mx = e.clientX;
     const my = e.clientY;
+
+    // console.log(mx, my);
 
     // 1) move the fixed .tri-button-move
     if (mover) {
@@ -103,7 +106,7 @@ window.Webflow.push(() => {
     sectionEl.removeEventListener('mousemove', mouseMoveHandler);
   });
 
-  function getCardRotation(cardIndex, mouseEv) {
+  function getCardRotation(cardIndex: number, mouseEv: MouseEvent) {
     const rect = cardRectBounds[cardIndex];
     const cx = rect.cx;
     const cy = rect.cy;
